@@ -1,10 +1,20 @@
 language: python
 python:
-  -"3.6"
-  dist: trusty
+  - "3.7"
+  
 services:
   - docker
 before_script: pip install docker-compose
 
 script:
   - docker-compose run app sh -c "python manage.py test && flake8"
+
+matrix:
+  include:
+    - python: 2.7
+    - python: 3.4
+    - python: 3.5
+    - python: 3.6
+    - python: 3.7
+      dist: xenial
+      sudo: true
