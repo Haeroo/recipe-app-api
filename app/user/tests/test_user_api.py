@@ -8,6 +8,7 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
+ME_URL = reverse('user:me')
 
 
 def create_user(**params):  # ** params is a dynamic  list of arguments
@@ -99,3 +100,59 @@ class PublicUserApiTests(TestCase):  # separee private and public
         res = self.client.post(TOKEN_URL, {'email': 'one', 'password': ''})
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retrieve_user_unauthorized(self):
+        """ Test that users are authenticated """
+        res = self.client.post(ME_URL)
+
+        self.assertNotIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_post_not_allowed(self):
+        """ Test post is not allowed """
+        res = self.client.post(ME_URL)
+
+        self.assertNotIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    class PrivateUserAPITEst(TestCase):
+        """ Test API requests that require authentication """
+
+        def setUp(self):
+            self.user = create_user(
+                email='HashTest@mnp.ca',
+                passsword='test1234',
+                name='Hash Test User'
+            )
+            self.Client = APIClient()
+            self.client.forced_authetiucate(user=self.user)
+
+        def test_retrieveing_information_for_autheticated_user(self):
+            """ Test retrieveing information for autheticated user """
+            res = self.client.get(ME_URL)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(res.data, {
+                'name': self.user.name,
+                'email': self.user.email
+            })
+
+        def test_post_me_not_allowed(self):
+            """ Test that post is not allowe me is not allwoed """
+            res = self.client.post(ME_URL, {})
+            self.assertEqual(res.status_code,
+                             status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        def test_update_user_profile(self):
+            """ Test that the user can update their information """
+            payload = {
+                        'email': 'test@mnp.ca',
+                        'password': 'password123456',
+                        'name': 'Test User'
+                    }
+
+            res = self.client.patch(ME_URL, payload)
+            self.user.refresh_fro_mdb()
+            self.assertEqual(self.user.email, payload['email'])
+            self.assertEqual(self.user.name, payload['name'])
+            self.assertTrue(self.user.check_password(payload['password']))
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
