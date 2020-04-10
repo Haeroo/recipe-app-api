@@ -1,0 +1,8 @@
+To install packages with ssl issues
+
+# Remember that it needs to be done with admin privledges
+python -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org python-language-server[all]
+python -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pybitcointools
+
+python -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org ipykernel
+python -m ipykernel --user

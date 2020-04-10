@@ -20,9 +20,9 @@ class UserSerializer (serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """ User setting password correctly and retunring it """
         password = validated_data.pop('password', None)
-        user = super().updated(instance, validated_data)
+        user = super().update(instance, validated_data)
         if password:
-            user.setpassword(password)
+            user.set_password(password)
             user.save()
             return user
 
